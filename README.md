@@ -1,4 +1,4 @@
-The Verifiable Conservative Humility (VCH) Protocol - Based on ME Andrew Allen Rusher's  logic/reasoning/psychology through debate having AI turn my thought process into this PROTOCOL & BADGE SYSTEM! I was not a coder, I was a solderer (tech) and a framer (construction) all of this done with AI's help putting my thought process into code!
+The Verifiable Conservative Humility (VCH) Protocol - Based on  Andrew Allen Rusher's logic/reasoning/ethics through debate having AI turn my thought process into this PROTOCOL & BADGE SYSTEM! I was not a coder, I was a solderer (tech) and a framer (construction) all of this done with AI's help putting my thought process into code!
 
 A Human-Derived Axiom for AI Trust and Alignment
 
