@@ -1,0 +1,20 @@
+name: Verify VACD checked fixed-point demo
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  cxx:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and run checked arithmetic tests (UBSan)
+        run: |
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/test_vacd.cpp -o /tmp/vacd-test
+          /tmp/vacd-test
+      - name: Compile and execute collision demo (UBSan)
+        run: |
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all 'VACD 5 Demo.cpp' -o /tmp/vacd-demo
+          /tmp/vacd-demo
