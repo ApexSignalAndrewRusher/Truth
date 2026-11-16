@@ -1,3 +1,24 @@
+[![TRUTH — Checked Fixed-Point Engineering](assets/truth-engineering-banner.svg)](https://github.com/QSOLKCB/Truth)
+
+<p align="center">
+  <a href="https://github.com/QSOLKCB/Truth/actions/workflows/verify.yml"><img alt="C++ checks and replay CI" src="https://github.com/QSOLKCB/Truth/actions/workflows/verify.yml/badge.svg"/></a>
+  <img alt="C++17" src="https://img.shields.io/badge/C%2B%2B-17-2c8a87"/>
+  <img alt="Sanitizer: UBSan" src="https://img.shields.io/badge/Sanitizer-UBSan-cb965b"/>
+</p>
+
+## QSOLKCB contribution — verified Q16.16 repair
+
+This repository is a fork of [ApexSignalAndrewRusher/Truth](https://github.com/ApexSignalAndrewRusher/Truth). Its upstream archive collection and author-provided explanation are preserved below. The **current patch** focuses narrowly on the standalone `VACD 5 Demo.cpp`, not on claims about the wider VCH protocol.
+
+- **VANILLAJS-inspired correctness:** checked signed Q16.16 arithmetic; reject overflow instead of wrapping or invoking undefined behaviour.
+- **OPT-inspired optimisation:** cache stationary obstacle bounds under an explicit invariant, compared against an uncached reference for a bounded deterministic replay set.
+- **Evidence:** C++17 native tests, UBSan, replay witnesses, output SHA-256 and failure receipts produced by the CI workflow.
+- **Boundaries:** finite differential tests are not universal formal proofs; no claim of new mathematics, measured performance improvement or completed Vulkan functionality.
+
+Read [the correction and reproducibility record](docs/VACD_CORRECTNESS.md) and [the workflow](.github/workflows/verify.yml). The badges report **fork verification**, not independent verification of the upstream theory or its bundled archives.
+
+## Upstream author's original README (preserved)
+
 The Verifiable Conservative Humility (VCH) Protocol - Based on  Andrew Allen Rusher's logic/reasoning/ethics through debate having AI turn my thought process into this PROTOCOL & BADGE SYSTEM! I was not a coder, I was a solderer (tech) and a framer (construction) all of this done with AI's help putting my thought process into code!
 
 A Human-Derived Axiom for AI Trust and Alignment

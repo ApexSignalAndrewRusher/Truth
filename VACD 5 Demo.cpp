@@ -1,78 +1,38 @@
-// VACD 5.0 Inspired Fixed-Point Collision Demo
-// Credit: Andrew Rusher (@ApexSignalAndrewRusher) - Pioneer of deterministic limb/control fixes via integer bounding boxes.
-// No float drift: All positions/velocities in 16.16 fixed-point for bit-identical autonomy across hardware.
-
+// VACD 5.0 inspired fixed-point collision demo.
+// Original demonstration and attribution: Andrew Rusher.
+// Correctness patch: checked signed Q16.16 arithmetic and regression tests.
+#include "src/vacd_collision.h"
 #include <iostream>
-#include <vector>
-#include <cstdint>
-#include <cmath>  // For abs only
-
-// Fixed-point 16.16 format
-using fixed = int32_t;
-#define FIXED_SCALE 65536
-#define INT_TO_FIXED(x) (static_cast<fixed>((x) * FIXED_SCALE))
-#define FIXED_TO_INT(x) (static_cast<int>((x) / FIXED_SCALE))
-#define FIXED_MUL(a, b) (static_cast<fixed>((static_cast<int64_t>(a) * (b)) / FIXED_SCALE))
-#define FIXED_ADD(a, b) ((a) + (b))
-
-// Axis-Aligned Bounding Box (AABB) in fixed-point
-struct AABB {
-    fixed minX, minY, maxX, maxY;
-};
-
-// Simple entity with position, velocity, and limb bounding box
-struct Entity {
-    fixed posX, posY;      // Center position
-    fixed velX, velY;      // Velocity per step
-    fixed halfWidth, halfHeight;  // Half-extents for bounding box
-    const char* name;
-
-    AABB getBounds() const {
-        return {
-            posX - halfWidth,
-            posY - halfHeight,
-            posX + halfWidth,
-            posY + halfHeight
-        };
-    }
-
-    void update() {
-        posX = FIXED_ADD(posX, velX);
-        posY = FIXED_ADD(posY, velY);
-    }
-};
-
-// Deterministic AABB collision check (no floats, pure integer ops)
-bool collides(const AABB& a, const AABB& b) {
-    return (a.minX < b.maxX && a.maxX > b.minX &&
-            a.minY < b.maxY && a.maxY > b.minY);
-}
 
 int main() {
-    // Setup two entities: "Sensor Limb" (moving right) and "Obstacle"
-    Entity limb = { INT_TO_FIXED(0), INT_TO_FIXED(0), INT_TO_FIXED(1), INT_TO_FIXED(0), INT_TO_FIXED(10), INT_TO_FIXED(10), "Sensor Limb" };
-    Entity obstacle = { INT_TO_FIXED(50), INT_TO_FIXED(0), INT_TO_FIXED(0), INT_TO_FIXED(0), INT_TO_FIXED(15), INT_TO_FIXED(15), "Obstacle" };
+  using namespace vacd;
+  try {
+    Entity limb{from_integer(0), from_integer(0),
+                from_integer(1), from_integer(0),
+                from_integer(10), from_integer(10), "Sensor Limb"};
+    const fixed zero = fixed::from_raw(0);
+    Entity obstacle{from_integer(50), zero,
+                    zero, zero, from_integer(15), from_integer(15), "Obstacle"};
 
-    std::cout << "VACD 5.0 Fixed-Point Collision Sim - By Andrew Rusher's Protocols\n\n";
-
+    // OPT-style invariant: the obstacle does not move, so its validated bounds
+    // may be reused until the obstacle geometry changes.
+    const AABB obstacleBounds = obstacle.bounds();
+    std::cout << "VACD 5.0 Fixed-Point Collision Demo\n\n";
     for (int step = 0; step < 60; ++step) {
-        limb.update();
-
-        AABB limbBox = limb.getBounds();
-        AABB obsBox = obstacle.getBounds();
-
-        std::cout << "Step " << step
-                  << " | Limb Pos: (" << FIXED_TO_INT(limb.posX) << ", " << FIXED_TO_INT(limb.posY) << ")";
-
-        if (collides(limbBox, obsBox)) {
-            std::cout << " >>> COLLISION DETECTED! Autonomous avoidance triggered.\n";
-            // In full VACD: Reverse or path-correct actuator deterministically
-            limb.velX = FIXED_MUL(limb.velX, INT_TO_FIXED(-1));  // Simple bounce for demo
-        } else {
-            std::cout << " - Clear\n";
-        }
+      limb.update();
+      std::cout << "Step " << step << " | Limb Pos: ("
+                << to_integer(limb.posX) << ", " << to_integer(limb.posY) << ")";
+      if (collides(limb.bounds(), obstacleBounds)) {
+        std::cout << " >>> COLLISION DETECTED! Demo reversal.\n";
+        limb.velX = mul(limb.velX, from_integer(-1));
+      } else {
+        std::cout << " - Clear\n";
+      }
     }
-
-    std::cout << "\nRun identical on any machine: No float drift, immortal precision.\n";
-    return 0;
+    std::cout << "\nDeterministic bounded fixed-point demo completed.\n";
+  } catch (const std::exception& error) {
+    std::cerr << "Simulation aborted: " << error.what() << "\n";
+    return 1;
+  }
+  return 0;
 }
