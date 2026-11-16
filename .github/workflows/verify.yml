@@ -11,11 +11,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Compile and run checked arithmetic tests (UBSan)
         run: |
-          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/test_vacd.cpp -o /tmp/vacd-test
+          g++ -std=c++17 -O2 -DNDEBUG -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/test_vacd.cpp -o /tmp/vacd-test
           /tmp/vacd-test
       - name: Verify bounded-reference versus cached-obstacle replay (UBSan)
         run: |
-          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/test_vacd_replay.cpp -o /tmp/vacd-replay-test
+          g++ -std=c++17 -O2 -DNDEBUG -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/test_vacd_replay.cpp -o /tmp/vacd-replay-test
           /tmp/vacd-replay-test
       - name: Compile and execute collision demo (UBSan)
         run: |

@@ -10,8 +10,9 @@ int main() {
     Entity limb{from_integer(0), from_integer(0),
                 from_integer(1), from_integer(0),
                 from_integer(10), from_integer(10), "Sensor Limb"};
-    Entity obstacle{from_integer(50), from_integer(0),
-                    0, 0, from_integer(15), from_integer(15), "Obstacle"};
+    const fixed zero = fixed::from_raw(0);
+    Entity obstacle{from_integer(50), zero,
+                    zero, zero, from_integer(15), from_integer(15), "Obstacle"};
 
     // OPT-style invariant: the obstacle does not move, so its validated bounds
     // may be reused until the obstacle geometry changes.

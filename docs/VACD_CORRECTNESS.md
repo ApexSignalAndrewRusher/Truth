@@ -41,3 +41,11 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-san
 python3 scripts/verify_replay.py --binary /tmp/vacd-demo --out build/vacd-replay-receipt.json
 python3 -m unittest discover -s tests -p test_witness.py
 ```
+
+## Review hardening — exact representation and fail-closed geometry
+
+The public C++ API now wraps Q16.16 raw values in a **strong `fixed` type**. Whole integer values must use `from_integer(int64_t)`; raw scaled values must use `fixed::from_raw(int32_t)`. Implicit conversion from integer or floating-point primitives is prohibited by compile-time assertions. Inputs are range-checked before narrowing.
+
+Geometry explicitly rejects inverted AABBs, excludes zero-area boxes, and preserves the existing non-overlap rule for merely touching edges. Both X and Y overflow tests ensure that an entity's two-position update is atomic.
+
+C++ tests deliberately compile with `-DNDEBUG` and use always-active checks; `assert` alone would silently vanish in release builds. The reference-vs-cached replay suite similarly performs active comparisons under `NDEBUG`. The bound and limited test matrix remain unchanged.
