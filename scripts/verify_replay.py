@@ -23,6 +23,8 @@ def verify(binary, out):
             "binary":str(binary), "checks":{}, "sha256":None}
     write_atomic(out,record)  # Stale PASS can never survive a rerun.
     try:
+        # The executable bytes are an input to this finite witness.
+        record["binary_sha256"]=hashlib.sha256(binary.read_bytes()).hexdigest()
         results=[]
         for attempt in range(2):
             proc=subprocess.run([str(binary)], capture_output=True,timeout=12,
@@ -31,6 +33,9 @@ def verify(binary, out):
             if proc.returncode!=0:
                 raise RuntimeError("demo exited nonzero: "+proc.stderr.decode("utf-8","replace")[:300])
             results.append(proc.stdout)
+        # A changed executable invalidates the result even with matching stdout.
+        if hashlib.sha256(binary.read_bytes()).hexdigest()!=record["binary_sha256"]:
+            raise RuntimeError("binary changed during verification")
         if results[0]!=results[1]:
             raise RuntimeError("nonidentical stdout across deterministic replays")
         if b"COLLISION DETECTED!" not in results[0]:
