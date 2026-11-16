@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <limits>
 #include <stdexcept>
+#include <type_traits>
 
 namespace vacd {
 constexpr std::int64_t scale = 65536;
@@ -16,7 +17,24 @@ class fixed {
   explicit constexpr fixed(std::int32_t raw) : value_(raw) {}
 public:
   fixed() = default;
-  static constexpr fixed from_raw(std::int32_t raw) { return fixed(raw); }
+  // Validate raw *integer* values before narrowing. Both signed and unsigned
+  // 64-bit callers are supported; floats are rejected at compile time.
+  template <typename Integer,
+            typename = std::enable_if_t<std::is_integral<Integer>::value>>
+  static constexpr fixed from_raw(Integer raw) {
+    if constexpr (std::is_signed<Integer>::value) {
+      const auto wide = static_cast<std::int64_t>(raw);
+      if (wide < std::numeric_limits<std::int32_t>::min() ||
+          wide > std::numeric_limits<std::int32_t>::max())
+        throw std::overflow_error("raw Q16.16 value outside signed 32-bit range");
+    } else {
+      const auto wide = static_cast<std::uint64_t>(raw);
+      if (wide > static_cast<std::uint64_t>(
+            std::numeric_limits<std::int32_t>::max()))
+        throw std::overflow_error("raw Q16.16 value outside signed 32-bit range");
+    }
+    return fixed(static_cast<std::int32_t>(raw));
+  }
   constexpr std::int32_t raw() const { return value_; }
   friend constexpr bool operator==(fixed a, fixed b) { return a.value_ == b.value_; }
   friend constexpr bool operator!=(fixed a, fixed b) { return !(a == b); }

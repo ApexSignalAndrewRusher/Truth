@@ -29,6 +29,25 @@ int main() {
   static_assert(!std::is_convertible<double, fixed>::value,
                 "binary64 values must not implicitly become Q16.16");
   const fixed zero = fixed::from_raw(0);
+  // Codex P2 regression: runtime wide raw inputs may not narrow to zero
+  // or silently flip sign before the signed-int32 range is checked.
+  const std::int64_t wrapsToZero = std::strtoll("4294967296", nullptr, 10);
+  const std::int64_t flipsSign = std::strtoll("2147483648", nullptr, 10);
+  const std::int64_t belowMin = std::strtoll("-2147483649", nullptr, 10);
+  const std::uint64_t unsignedTooWide = std::strtoull("18446744073709551615", nullptr, 10);
+  expect_overflow([&] { (void)fixed::from_raw(wrapsToZero); });
+  expect_overflow([&] { (void)fixed::from_raw(flipsSign); });
+  expect_overflow([&] { (void)fixed::from_raw(belowMin); });
+  expect_overflow([&] { (void)fixed::from_raw(unsignedTooWide); });
+  require(fixed::from_raw(static_cast<std::int64_t>(2147483647)).raw() ==
+          std::numeric_limits<std::int32_t>::max(), "max signed raw accepted");
+  require(fixed::from_raw(static_cast<std::int64_t>(-2147483647)-1).raw() ==
+          std::numeric_limits<std::int32_t>::min(), "min signed raw accepted");
+  require(fixed::from_raw(static_cast<std::uint64_t>(2147483647)).raw() ==
+          std::numeric_limits<std::int32_t>::max(), "max unsigned raw accepted");
+  require(fixed::from_raw(static_cast<std::int16_t>(-1)).raw() == -1,
+          "narrow signed raw value accepted");
+
   require(from_integer(1).raw()==65536, "Q16.16 one");
   require(from_integer(-1).raw()==-65536, "Q16.16 negative one");
   require(from_integer(-32768).raw()==std::numeric_limits<std::int32_t>::min(), "lower bound");

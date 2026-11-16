@@ -44,7 +44,7 @@ python3 -m unittest discover -s tests -p test_witness.py
 
 ## Review hardening — exact representation and fail-closed geometry
 
-The public C++ API now wraps Q16.16 raw values in a **strong `fixed` type**. Whole integer values must use `from_integer(int64_t)`; raw scaled values must use `fixed::from_raw(int32_t)`. Implicit conversion from integer or floating-point primitives is prohibited by compile-time assertions. Inputs are range-checked before narrowing.
+The public C++ API now wraps Q16.16 raw values in a **strong `fixed` type**. Whole integer values must use `from_integer(int64_t)`; raw scaled values must use `fixed::from_raw(integral)`. The raw factory accepts signed and unsigned integral inputs (including runtime 64-bit integers), validates the signed-int32 range **before narrowing**, and throws `std::overflow_error` for values outside −2,147,483,648…2,147,483,647. Floating-point factory arguments are rejected at compilation. There is no implicit conversion from primitive integers or floating-point values into `fixed`; callers must choose a factory. Regression tests reproduce the Codex cases `4294967296` (formerly became zero), `2147483648` (formerly flipped sign), below-minimum and maximum unsigned inputs, and both valid signed raw limits.
 
 Geometry explicitly rejects inverted AABBs, excludes zero-area boxes, and preserves the existing non-overlap rule for merely touching edges. Both X and Y overflow tests ensure that an entity's two-position update is atomic.
 
