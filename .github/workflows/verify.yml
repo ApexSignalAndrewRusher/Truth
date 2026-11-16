@@ -13,7 +13,22 @@ jobs:
         run: |
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/test_vacd.cpp -o /tmp/vacd-test
           /tmp/vacd-test
+      - name: Verify bounded-reference versus cached-obstacle replay (UBSan)
+        run: |
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/test_vacd_replay.cpp -o /tmp/vacd-replay-test
+          /tmp/vacd-replay-test
       - name: Compile and execute collision demo (UBSan)
         run: |
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all 'VACD 5 Demo.cpp' -o /tmp/vacd-demo
           /tmp/vacd-demo
+      - name: Write deterministic replay evidence (pass/fail receipt)
+        run: python3 scripts/verify_replay.py --binary /tmp/vacd-demo --out build/vacd-replay-receipt.json
+      - name: Test receipt overwrite on verification failure
+        run: python3 -m unittest discover -s tests -p test_witness.py
+      - name: Preserve replay receipt even if verification fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vacd-replay-receipt
+          path: build/vacd-replay-receipt.json
+          if-no-files-found: warn

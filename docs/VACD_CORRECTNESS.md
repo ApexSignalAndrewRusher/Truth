@@ -24,3 +24,20 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-san
 These tests check boundary overflow, signed multiplication, atomic movement, collision versus touching, and normal execution. They do **not** prove determinism on all targets, autonomy, sensor safety, or perpetual precision.
 
 **Scope:** This PR does not modify or redistribute the third-party ZIP/tar archives in `Truth`, and does not claim the separate Vulkan sample is complete.
+
+## QSOL-IMC VANILLAJS/OPT-inspired integration
+
+This patch adapts **engineering contracts**, not a theorem or a runtime dependency.
+
+- **VANILLAJS:** `QSOLKCB/VANILLAJS/modules/integer-math/index.js` (Git blob `d457b0154d9dfc8b50fd593b5e9dff75e1ea66b9`) demonstrates signed-int32 input checking, bounded operations, and rejection instead of wraparound. This project independently expresses the relevant checked-arithmetic contract in C++17. It does **not** claim to incorporate VANILLAJS's Lean proof or establish Lean/C++ refinement.
+- **OPT:** `QSOLKCB/OPT/AGENTS.md` calls for an explicitly named reuse invariant and reference-equivalence tests. Here, **obstacle AABB is immutable during the simulation**, so the demo computes its bounds once and reuses them; `tests/test_vacd_replay.cpp` compares cached and uncached paths for 128 deterministic starting positions over 60 steps.
+- **Replay witness:** A stdlib-only Python runner executes the demo twice, checks identical output and successful exit codes, and writes an atomic JSON receipt with SHA-256 of the trace. A failed rerun overwrites any previous PASS receipt. This is a *finite reproducibility witness*, not proof of all-target determinism or collision-model correctness.
+
+No new dependencies or runtime archives are introduced. The only demonstrated optimization is avoiding repeated calls to `obstacle.bounds()` under the stated stationary-obstacle invariant; **no speed-up ratio is claimed without benchmark evidence**.
+
+```sh
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/test_vacd_replay.cpp -o /tmp/vacd-replay-test
+/tmp/vacd-replay-test
+python3 scripts/verify_replay.py --binary /tmp/vacd-demo --out build/vacd-replay-receipt.json
+python3 -m unittest discover -s tests -p test_witness.py
+```
